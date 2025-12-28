@@ -1,4 +1,5 @@
-using CodesysProtocols.Blazor.Services;
+using CodesysProtocols.Blazor.Services.Codesys23;
+using CodesysProtocols.DataAccess.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.FluentUI.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -16,12 +17,16 @@ public partial class Iec608705Converter
 
     [Inject] private IIec608705ExcelWorkbookValidationService IecExcelWorkbookValidationService { get; set; } = default!;
 
+    [Inject] private IIec608705CounterService Iec608705CounterService { get; set; } = default!;
+
     private int ProgressPercent = 0;
     private FluentInputFileEventArgs[] Files = [];
     private string LoggerText { get; set; } = string.Empty;
     private bool ProtocolConfigurationLoading { get; set; }
     private bool XmlConfigurationSaving { get; set; }
     private string? ProtocolConfigurationName { get; set; }
+    private long ToExcelCounter { get; set; }
+    private long ToXmlCounter { get; set; }
 
     // Generated outputs after conversion
     private byte[]? _generatedExcelBytes;
@@ -29,6 +34,12 @@ public partial class Iec608705Converter
 
     private bool CanDownloadExcel => _generatedExcelBytes is not null;
     private bool CanDownloadXml => _generatedXmlBytes is not null;
+
+    protected override async Task OnInitializedAsync() 
+    {
+        ToExcelCounter = await Iec608705CounterService.GetCounterValueAsync(DataAccess.Enums.Codesys23Iec608705CounterType.ToExcel);
+        ToXmlCounter = await Iec608705CounterService.GetCounterValueAsync(DataAccess.Enums.Codesys23Iec608705CounterType.ToXml);
+    }
 
     private async Task OnCompletedFileAsync(IEnumerable<FluentInputFileEventArgs> files)
     {
@@ -96,6 +107,7 @@ public partial class Iec608705Converter
                         _generatedXmlBytes = ms.ToArray();
                     }
 
+                    ToXmlCounter++;
                     Log("Protocol configuration Excel loaded");
                     break;
 
@@ -109,6 +121,7 @@ public partial class Iec608705Converter
                         _generatedExcelBytes = ms.ToArray();
                     }
 
+                    ToExcelCounter++;
                     Log("Protocol configuration XML file loaded");
                     break;
 

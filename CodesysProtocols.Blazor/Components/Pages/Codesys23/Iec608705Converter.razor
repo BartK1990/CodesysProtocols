@@ -2,7 +2,12 @@
 @rendermode InteractiveServer
 
 <h3>IEC 60870-5-104 Converter</h3>
-
+<div class="counters-labels">
+    <FluentLabel>To Excel:</FluentLabel>
+    <FluentBadge Appearance="Appearance.Neutral">@ToExcelCounter</FluentBadge>
+    <FluentLabel>To XML:</FluentLabel>
+    <FluentBadge Appearance="Appearance.Neutral">@ToXmlCounter</FluentBadge>
+</div>
 <div class="converter-container">
     <FluentInputFile Id="my-file-uploader"
                      Mode="InputFileMode.Stream"

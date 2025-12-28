@@ -1,11 +1,18 @@
 using CodesysProtocols.Blazor.Components;
-using CodesysProtocols.Blazor.Services;
+using CodesysProtocols.Blazor.Services.Codesys23;
+using CodesysProtocols.DataAccess;
+using CodesysProtocols.DataAccess.Services;
 using CodesysProtocols.Model;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.FluentUI.AspNetCore.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+
+// Add DbContext with SQL Server
+builder.Services.AddDbContext<CodesysProtocolsDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("MsSqlServerDb")));
 
 // Add services to the container.
 builder.Services.AddScoped<IIec608705ConverterService, Iec608705ConverterService>();
@@ -14,12 +21,20 @@ builder.Services.AddScoped<IIec608705ExcelWorkbookValidationService, Iec608705Ex
 builder.Services.AddScoped<Iec608705ExcelWorkbookValidation>();
 builder.Services.AddScoped<Iec608705Converter>();
 
+builder.Services.AddScoped<IIec608705CounterService, Iec608705CounterService>();
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddFluentUIComponents();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<CodesysProtocolsDbContext>();
+    await dbContext.Database.MigrateAsync();
+}
 
 app.MapDefaultEndpoints();
 

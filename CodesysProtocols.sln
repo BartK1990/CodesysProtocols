@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodesysProtocols.Spreadshee
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodesysProtocols.Model", "CodesysProtocols.Model\CodesysProtocols.Model.csproj", "{B8E93271-633E-4834-BE3D-E7A939DEE7D7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodesysProtocols.DataAccess", "CodesysProtocols.DataAccess\CodesysProtocols.DataAccess.csproj", "{2E7FB7D6-DD49-4588-B60D-8E7BCC9A9DCD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{B8E93271-633E-4834-BE3D-E7A939DEE7D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B8E93271-633E-4834-BE3D-E7A939DEE7D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B8E93271-633E-4834-BE3D-E7A939DEE7D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E7FB7D6-DD49-4588-B60D-8E7BCC9A9DCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E7FB7D6-DD49-4588-B60D-8E7BCC9A9DCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E7FB7D6-DD49-4588-B60D-8E7BCC9A9DCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E7FB7D6-DD49-4588-B60D-8E7BCC9A9DCD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

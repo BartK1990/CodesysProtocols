@@ -1,4 +1,4 @@
-﻿namespace CodesysProtocols.Blazor.Services
+﻿namespace CodesysProtocols.Blazor.Services.Codesys23
 {
     public interface IIec608705ExcelWorkbookValidationService
     {

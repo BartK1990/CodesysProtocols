@@ -1,6 +1,6 @@
 ﻿using CodesysProtocols.Model;
 
-namespace CodesysProtocols.Blazor.Services
+namespace CodesysProtocols.Blazor.Services.Codesys23
 {
     public class Iec608705ExcelWorkbookValidationService : IIec608705ExcelWorkbookValidationService
     {
