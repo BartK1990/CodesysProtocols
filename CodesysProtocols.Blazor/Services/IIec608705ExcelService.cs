@@ -8,5 +8,5 @@ public interface IIec608705ExcelService
 
     Task<Iec608705Table[]> ReadTablesFromExcelAsync(Stream stream);
 
-    Task<Stream> GetExcelFromTablesAsync(Iec608705Table[] tables);
+    Task GetExcelFromTablesAsync(Stream outputStream, Iec608705Table[] tables);
 }

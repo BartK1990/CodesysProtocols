@@ -10,7 +10,7 @@ public class Iec608705ExcelService : IIec608705ExcelService
     public async Task<string[]> GetExcelSheetNamesAsync(Stream stream) =>
         await Task.Run(() => GetExcelSheetNames(stream));
 
-    private string[] GetExcelSheetNames(Stream stream)
+    private static string[] GetExcelSheetNames(Stream stream)
     {
         using ExcelPackage package = Excel.GetExcelPackage(stream);
         return Excel.GetSheetNames(package);
@@ -19,7 +19,7 @@ public class Iec608705ExcelService : IIec608705ExcelService
     public async Task<Iec608705Table[]> ReadTablesFromExcelAsync(Stream stream) =>
         await Task.Run(() => ReadTablesFromExcel(stream));
 
-    private Iec608705Table[] ReadTablesFromExcel(Stream stream)
+    private static Iec608705Table[] ReadTablesFromExcel(Stream stream)
     {
         using ExcelPackage package = Excel.GetExcelPackage(stream);
         return Iec608705ExcelWorkbookValidation.SheetNames
@@ -27,11 +27,11 @@ public class Iec608705ExcelService : IIec608705ExcelService
             .Select(ExcelIec608705Table.Read).ToArray();
     }
 
-    public async Task<Stream> GetExcelFromTablesAsync(Iec608705Table[] tables) =>
-        await Task.Run(() => WriteTablesToExcel(tables));
+    public async Task GetExcelFromTablesAsync(Stream outputStream, Iec608705Table[] tables) =>
+        await Task.Run(() => WriteTablesToExcel(outputStream, tables));
 
 
-    private static Stream WriteTablesToExcel(Iec608705Table[] tables)
+    private static void WriteTablesToExcel(Stream outputStream, Iec608705Table[] tables)
     {
         using ExcelPackage package = new();
         foreach (Iec608705Table table in tables)
@@ -40,7 +40,6 @@ public class Iec608705ExcelService : IIec608705ExcelService
             ExcelIec608705Table.Write(table, worksheet);
         }
 
-        package.Save();
-        return package.Stream;
+        package.SaveAs(outputStream);
     }
 }

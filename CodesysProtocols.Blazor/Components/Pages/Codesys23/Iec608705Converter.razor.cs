@@ -2,7 +2,6 @@ using CodesysProtocols.Blazor.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.FluentUI.AspNetCore.Components;
 using Microsoft.JSInterop;
-using OfficeOpenXml.Utils;
 using System.Xml.Linq;
 
 namespace CodesysProtocols.Blazor.Components.Pages.Codesys23;
@@ -39,7 +38,6 @@ public partial class Iec608705Converter
             await HandleFileAsync(file);
         }
 
-        await Task.Delay(3000);
         ProgressPercent = 0;
     }
 
@@ -102,14 +100,15 @@ public partial class Iec608705Converter
                     break;
 
                 case ".xml":
+                    fileStream.Position = 0;
                     XDocument xml = XDocument.Load(fileStream);
                     var tablesFromXml = await IecConverterService.XmlToDataAsync(xml);
-                    using (var excelStream = await IecExcelService.GetExcelFromTablesAsync(tablesFromXml))
+                    using (var ms = new MemoryStream())
                     {
-                        using var ms = new MemoryStream();
-                        await excelStream.CopyToAsync(ms);
+                        await IecExcelService.GetExcelFromTablesAsync(ms, tablesFromXml);
                         _generatedExcelBytes = ms.ToArray();
                     }
+
                     Log("Protocol configuration XML file loaded");
                     break;
 
@@ -204,5 +203,10 @@ public partial class Iec608705Converter
     {
         var base64 = Convert.ToBase64String(data);
         await JS.InvokeVoidAsync("downloadFile", name, contentType, base64);
+    }
+
+    private void ClearLog()
+    {
+        LoggerText = string.Empty;
     }
 }

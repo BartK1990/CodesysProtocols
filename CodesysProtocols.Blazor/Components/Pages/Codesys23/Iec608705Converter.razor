@@ -45,6 +45,7 @@
         </ul>
     }
 
+    <br />
     <div class="status">
         <div class="row">
             <strong>Converted:</strong>
@@ -54,23 +55,28 @@
         {
             <div class="row">
                 <span>Configuration loading ...</span>
+                <FluentProgressRing></FluentProgressRing>
             </div>
         }
         @if (XmlConfigurationSaving)
         {
             <div class="row">
                 <span>Configuration saving ...</span>
+                <FluentProgressRing></FluentProgressRing>
             </div>
         }
     </div>
 
+    <br />
     <div class="actions">
         <FluentButton Appearance="Appearance.Accent" Disabled="@(!CanDownloadExcel)" @onclick="DownloadExcel">Download Excel</FluentButton>
         <FluentButton Appearance="Appearance.Accent" Disabled="@(!CanDownloadXml)" @onclick="DownloadXml">Download XML</FluentButton>
     </div>
 
+    <br />
     <div class="log">
         <h4>Log</h4>
+        <FluentButton Appearance="Appearance.Lightweight" @onclick="ClearLog">Clear Log</FluentButton>
         <pre>@LoggerText</pre>
     </div>
 </div>
