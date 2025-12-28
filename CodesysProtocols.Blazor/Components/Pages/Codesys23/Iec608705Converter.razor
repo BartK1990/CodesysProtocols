@@ -1,0 +1,84 @@
+﻿@page "/Codesys23/Iec608705Converter"
+@rendermode InteractiveServer
+
+<h3>IEC 60870-5-104 Converter</h3>
+
+<div class="converter-container">
+    <FluentInputFile Id="my-file-uploader"
+                     Mode="InputFileMode.Stream"
+                     Multiple="false"
+                     MaximumFileCount="1"
+                     MaximumFileSize="@(7*1024*1024)"
+                     Accept=".xml, .xlsx, .xlsm, .xls"
+                     @bind-ProgressPercent="@ProgressPercent"
+                     OnCompleted="@OnCompletedFileAsync"
+                     Style="height: 150px;">
+        <ChildContent>
+            <label for="my-file-uploader">
+                <FluentIcon Value="@(new @Icons.Regular.Size24.ArrowUpload())" />
+            </label>
+
+            <div>
+                Drag files here you wish to upload,
+                or <label for="my-file-uploader">browse</label>
+                for them<span style="color: red;">*</span>.
+                <br />
+                <em>Maximum of 1 file allowed.</em>
+            </div>
+        </ChildContent>
+    </FluentInputFile>
+
+    @if (Files.Any())
+    {
+        <h4>File(s) uploaded:</h4>
+        <ul>
+            @foreach (var file in Files)
+            {
+                <li>
+                    <b>@file.Name</b> 🔹
+                    @($"{Decimal.Divide(file.Size, 1024):N} KB") 🔹
+                    @file.ContentType 🔹
+                    @file.LocalFile?.FullName
+                    @file.ErrorMessage
+                </li>
+            }
+        </ul>
+    }
+
+    <br />
+    <div class="status">
+        <div class="row">
+            <strong>Converted:</strong>
+            <span>@(string.IsNullOrEmpty(ProtocolConfigurationName) ? "—" : ProtocolConfigurationName)</span>
+        </div>
+        @if (ProtocolConfigurationLoading)
+        {
+            <div class="row">
+                <span>Configuration loading ...</span>
+                <FluentProgressRing></FluentProgressRing>
+            </div>
+        }
+        @if (XmlConfigurationSaving)
+        {
+            <div class="row">
+                <span>Configuration saving ...</span>
+                <FluentProgressRing></FluentProgressRing>
+            </div>
+        }
+    </div>
+
+    <br />
+    <div class="actions">
+        <FluentButton Appearance="Appearance.Accent" Disabled="@(!CanDownloadExcel)" @onclick="DownloadExcel">Download Excel</FluentButton>
+        <FluentButton Appearance="Appearance.Accent" Disabled="@(!CanDownloadXml)" @onclick="DownloadXml">Download XML</FluentButton>
+    </div>
+
+    <br />
+    <div class="log">
+        <h4>Log</h4>
+        <FluentButton Appearance="Appearance.Lightweight" @onclick="ClearLog">Clear Log</FluentButton>
+        <pre>@LoggerText</pre>
+    </div>
+</div>
+
+

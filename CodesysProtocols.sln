@@ -1,13 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36804.6 d17.14
+# Visual Studio Version 18
+VisualStudioVersion = 18.1.11312.151
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodesysProtocols.Blazor", "CodesysProtocols.Blazor\CodesysProtocols.Blazor.csproj", "{990397FD-155B-F02A-D6D8-8C917E1C4A52}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodesysProtocols.AppHost", "CodesysProtocols.AppHost\CodesysProtocols.AppHost.csproj", "{B54E3701-A57A-48C1-82A7-6B224B92E012}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodesysProtocols.AppHost", "CodesysProtocols.AppHost\CodesysProtocols.AppHost.csproj", "{CF2A78AA-8BEC-44F8-98B6-E06C147C4372}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodesysProtocols.ServiceDefaults", "CodesysProtocols.ServiceDefaults\CodesysProtocols.ServiceDefaults.csproj", "{D0B97B5C-CD91-A121-8B0A-3BE166D6A3A5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentUIBlazorTry", "FluentUIBlazorTry\FluentUIBlazorTry.csproj", "{643B26D7-3057-4EB8-B9F4-242BB236636D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodesysProtocols.Spreadsheet", "CodesysProtocols.Spreadsheet\CodesysProtocols.Spreadsheet.csproj", "{67FE00F3-C3EF-4A03-9C2E-8144AFE61E7B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodesysProtocols.Model", "CodesysProtocols.Model\CodesysProtocols.Model.csproj", "{B8E93271-633E-4834-BE3D-E7A939DEE7D7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,14 +25,26 @@ Global
 		{990397FD-155B-F02A-D6D8-8C917E1C4A52}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{990397FD-155B-F02A-D6D8-8C917E1C4A52}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{990397FD-155B-F02A-D6D8-8C917E1C4A52}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B54E3701-A57A-48C1-82A7-6B224B92E012}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B54E3701-A57A-48C1-82A7-6B224B92E012}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B54E3701-A57A-48C1-82A7-6B224B92E012}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B54E3701-A57A-48C1-82A7-6B224B92E012}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF2A78AA-8BEC-44F8-98B6-E06C147C4372}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF2A78AA-8BEC-44F8-98B6-E06C147C4372}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF2A78AA-8BEC-44F8-98B6-E06C147C4372}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF2A78AA-8BEC-44F8-98B6-E06C147C4372}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D0B97B5C-CD91-A121-8B0A-3BE166D6A3A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D0B97B5C-CD91-A121-8B0A-3BE166D6A3A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0B97B5C-CD91-A121-8B0A-3BE166D6A3A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D0B97B5C-CD91-A121-8B0A-3BE166D6A3A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{643B26D7-3057-4EB8-B9F4-242BB236636D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{643B26D7-3057-4EB8-B9F4-242BB236636D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{643B26D7-3057-4EB8-B9F4-242BB236636D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{643B26D7-3057-4EB8-B9F4-242BB236636D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67FE00F3-C3EF-4A03-9C2E-8144AFE61E7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67FE00F3-C3EF-4A03-9C2E-8144AFE61E7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67FE00F3-C3EF-4A03-9C2E-8144AFE61E7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67FE00F3-C3EF-4A03-9C2E-8144AFE61E7B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8E93271-633E-4834-BE3D-E7A939DEE7D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8E93271-633E-4834-BE3D-E7A939DEE7D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8E93271-633E-4834-BE3D-E7A939DEE7D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8E93271-633E-4834-BE3D-E7A939DEE7D7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
