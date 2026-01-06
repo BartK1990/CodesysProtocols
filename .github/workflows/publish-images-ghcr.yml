@@ -33,11 +33,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Blazor service image
       - name: Publish codesysprotocols-blazor image
         run: >
           dotnet publish CodesysProtocols.Blazor/CodesysProtocols.Blazor.csproj
           -c Release
           /p:ContainerRegistry=${{ env.REGISTRY }}/${{ env.OWNER }}
-          /p:ContainerImageTag=${{ env.TAG }}
-          /p:ContainerImageTags=latest
+          /p:ContainerImageTags=${{ env.TAG }};latest

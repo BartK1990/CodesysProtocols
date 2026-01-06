@@ -8,7 +8,7 @@
     <UserSecretsId>018e361a-8025-4341-9611-5f838eda5703</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <PublishProfile>DefaultContainer</PublishProfile>
-    <ContainerImageName>codesysprotocols-blazor</ContainerImageName>
+    <ContainerRepository>codesysprotocols-blazor</ContainerRepository>
   </PropertyGroup>
 
   <ItemGroup>
