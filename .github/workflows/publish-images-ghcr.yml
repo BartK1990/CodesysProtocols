@@ -1,0 +1,35 @@
+name: Publish images to GHCR
+
+on:
+  push:
+    branches: [ "master", "docker-publish" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  TAG: ${{ github.sha }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish codesysprotocols-blazor image
+        run: dotnet publish CodesysProtocols.Blazor/CodesysProtocols.Blazor.csproj -c Release /p:ContainerImageTags="${{ env.TAG }}%3Blatest"
