@@ -16,7 +16,12 @@ public class Excel
 
     public static ExcelSheet GetSheet(ExcelDocument package, string sheetName)
     {
-        return package.Sheets.First(s => s.Name == sheetName);
+        var sheet = package.Sheets.FirstOrDefault(s => s.Name == sheetName);
+        if (sheet is null)
+        {
+            throw new InvalidOperationException($"Sheet '{sheetName}' not found in the document.");
+        }
+        return sheet;
     }
 
     public static string[] GetSheetNames(ExcelDocument package)

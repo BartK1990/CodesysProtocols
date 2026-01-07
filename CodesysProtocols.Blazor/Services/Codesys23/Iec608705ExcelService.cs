@@ -38,8 +38,13 @@ public class Iec608705ExcelService : IIec608705ExcelService
 
     private static void WriteTablesToExcel(Stream outputStream, Iec608705Table[] tables)
     {
-        // Create a temporary file since OfficeIMO.Excel requires a file path for creation
-        string tempFile = Path.GetTempFileName();
+        if (tables == null || tables.Length == 0)
+        {
+            throw new ArgumentException("Tables array cannot be null or empty.", nameof(tables));
+        }
+
+        // Create a temporary file with .xlsx extension since OfficeIMO.Excel requires a file path for creation
+        string tempFile = Path.ChangeExtension(Path.GetTempFileName(), ".xlsx");
         try
         {
             // Create document with first sheet
