@@ -7,7 +7,7 @@ builder.AddDockerComposeEnvironment("compose")
     })
     .WithDashboard(dashboard =>
     {
-        dashboard.WithHostPort(8080)
+        dashboard.WithHostPort(8081)
                 .WithForwardedHeaders(enabled: true);
     });
 
@@ -17,9 +17,10 @@ var database = builder.AddSqlServer("database")
 builder.AddProject<Projects.CodesysProtocols_Blazor>("codesysprotocols-blazor")
     .WithReference(database)
     .WaitFor(database)
-    .PublishAsDockerComposeService((serviceResource, service) => 
+    .PublishAsDockerComposeService((serviceResource, service) =>
     {
         service.ContainerName = serviceResource.Name;
+        service.Ports = ["8080:8080"];
     });
 
 builder.Build().Run();

@@ -4,7 +4,7 @@ services:
     environment:
       ASPIRE_DASHBOARD_FORWARDEDHEADERS_ENABLED: "true"
     ports:
-      - "8080:18888"
+      - "8081:18888"
     expose:
       - "18889"
       - "18890"
@@ -22,6 +22,7 @@ services:
       - "codesysprotocols_net"
   codesysprotocols-blazor:
     image: "${CODESYSPROTOCOLS_BLAZOR_IMAGE}"
+    container_name: "codesysprotocols-blazor"
     environment:
       OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EXCEPTION_LOG_ATTRIBUTES: "true"
       OTEL_DOTNET_EXPERIMENTAL_OTLP_EMIT_EVENT_LOG_ATTRIBUTES: "true"
@@ -39,6 +40,8 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose-dashboard:18889"
       OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
       OTEL_SERVICE_NAME: "codesysprotocols-blazor"
+    ports:
+      - "8080:8080"
     expose:
       - "${CODESYSPROTOCOLS_BLAZOR_PORT}"
     depends_on:
