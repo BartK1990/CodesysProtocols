@@ -1,7 +1,8 @@
 ﻿using CodesysProtocols.Model;
 using CodesysProtocols.Model.TableData.Iec608705;
 using CodesysProtocols.Spreadsheet.ExcelAccess;
-using OfficeOpenXml;
+using DocumentFormat.OpenXml.Packaging;
+using OfficeIMO.Excel;
 
 namespace CodesysProtocols.Blazor.Services.Codesys23;
 
@@ -12,7 +13,7 @@ public class Iec608705ExcelService : IIec608705ExcelService
 
     private static string[] GetExcelSheetNames(Stream stream)
     {
-        using ExcelPackage package = Excel.GetExcelPackage(stream);
+        using ExcelDocument package = Excel.GetExcelPackage(stream);
         return Excel.GetSheetNames(package);
     }
 
@@ -21,10 +22,14 @@ public class Iec608705ExcelService : IIec608705ExcelService
 
     private static Iec608705Table[] ReadTablesFromExcel(Stream stream)
     {
-        using ExcelPackage package = Excel.GetExcelPackage(stream);
+        using var spreadsheetDoc = SpreadsheetDocument.Open(stream, false);
+        using var reader = ExcelDocumentReader.Wrap(spreadsheetDoc, null);
         return Iec608705ExcelWorkbookValidation.SheetNames
-            .Select(sheetName => Excel.GetSheet(package, sheetName))
-            .Select(ExcelIec608705Table.Read).ToArray();
+            .Select(sheetName => 
+            {
+                var sheetReader = reader.GetSheet(sheetName);
+                return ExcelIec608705Table.Read(sheetReader, sheetName);
+            }).ToArray();
     }
 
     public async Task GetExcelFromTablesAsync(Stream outputStream, Iec608705Table[] tables) =>
@@ -33,13 +38,35 @@ public class Iec608705ExcelService : IIec608705ExcelService
 
     private static void WriteTablesToExcel(Stream outputStream, Iec608705Table[] tables)
     {
-        using ExcelPackage package = new();
-        foreach (Iec608705Table table in tables)
+        // Create a temporary file since OfficeIMO.Excel requires a file path for creation
+        string tempFile = Path.GetTempFileName();
+        try
         {
-            var worksheet = package.Workbook.Worksheets.Add(table.Name);
-            ExcelIec608705Table.Write(table, worksheet);
-        }
+            // Create document with first sheet
+            using (var document = ExcelDocument.Create(tempFile, tables[0].Name))
+            {
+                // Write first table
+                var sheet = document.Sheets[0];
+                ExcelIec608705Table.Write(tables[0], sheet);
 
-        package.SaveAs(outputStream);
+                // Add remaining tables
+                for (int i = 1; i < tables.Length; i++)
+                {
+                    var worksheet = document.AddWorkSheet(tables[i].Name);
+                    ExcelIec608705Table.Write(tables[i], worksheet);
+                }
+
+                // Save to the output stream
+                document.Save(outputStream);
+            }
+        }
+        finally
+        {
+            // Clean up temp file
+            if (File.Exists(tempFile))
+            {
+                File.Delete(tempFile);
+            }
+        }
     }
 }
