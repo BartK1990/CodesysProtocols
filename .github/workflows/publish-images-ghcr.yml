@@ -32,4 +32,4 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish codesysprotocols-blazor image
-        run: dotnet publish CodesysProtocols.Blazor/CodesysProtocols.Blazor.csproj -c Release '"/p:ContainerImageTags=${{ env.TAG }};latest"'
+        run: dotnet publish CodesysProtocols.Blazor/CodesysProtocols.Blazor.csproj -c Release /p:ContainerImageTags='"${{ env.TAG }};latest"'
