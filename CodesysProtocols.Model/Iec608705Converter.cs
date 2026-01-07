@@ -146,8 +146,7 @@ public class Iec608705Converter
                         : nameof(Iec608705XmlChannel.Assignment);
 
                     Iec608705TableValue secondTableValue = channelColumns
-                        .First(cc => cc.Name == $"{channelName}{ChannelSplit}{channelSecondSuffix}" 
-                                     && cc.Type == column.Type)
+                        .First(cc => cc.Name == $"{channelName}{ChannelSplit}{channelSecondSuffix}" && cc.Type == column.Type)
                         .Values.FirstOrDefault(v => v.Row == row);
 
                     node.Add(new Iec608705XmlChannel

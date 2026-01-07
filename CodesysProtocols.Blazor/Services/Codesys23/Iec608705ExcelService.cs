@@ -3,7 +3,7 @@ using CodesysProtocols.Model.TableData.Iec608705;
 using CodesysProtocols.Spreadsheet.ExcelAccess;
 using OfficeOpenXml;
 
-namespace CodesysProtocols.Blazor.Services;
+namespace CodesysProtocols.Blazor.Services.Codesys23;
 
 public class Iec608705ExcelService : IIec608705ExcelService
 {

@@ -24,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CodesysProtocols.DataAccess\CodesysProtocols.DataAccess.csproj" />
     <ProjectReference Include="..\CodesysProtocols.ServiceDefaults\CodesysProtocols.ServiceDefaults.csproj" />
     <ProjectReference Include="..\CodesysProtocols.Spreadsheet\CodesysProtocols.Spreadsheet.csproj" />
   </ItemGroup>

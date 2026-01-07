@@ -1,6 +1,6 @@
 ﻿using CodesysProtocols.Model.TableData.Iec608705;
 
-namespace CodesysProtocols.Blazor.Services;
+namespace CodesysProtocols.Blazor.Services.Codesys23;
 
 public interface IIec608705ExcelService
 {
