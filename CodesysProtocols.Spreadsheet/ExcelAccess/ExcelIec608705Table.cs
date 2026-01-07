@@ -1,7 +1,6 @@
 ﻿using CodesysProtocols.Model.TableData.Iec608705;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
-using System.Drawing;
 
 namespace CodesysProtocols.Spreadsheet.ExcelAccess;
 
@@ -93,7 +92,8 @@ public class ExcelIec608705Table
         ExcelRange range = ws.Cells[1, 1, 3, lastColumn];
         range.AutoFitColumns();
         range.Style.Fill.PatternType = ExcelFillStyle.Solid;
-        range.Style.Fill.BackgroundColor.SetColor(ColorTranslator.FromHtml(HeadersHtmlColor));
+        // ToDo: Replace EPPlus with OfficeIMO
+        // range.Style.Fill.BackgroundColor.SetColor(FromHtmlUsingSkia(HeadersHtmlColor));
         range.Style.Border.Top.Style = ExcelBorderStyle.Thin;
         range.Style.Border.Left.Style = ExcelBorderStyle.Thin;
         range.Style.Border.Right.Style = ExcelBorderStyle.Thin;

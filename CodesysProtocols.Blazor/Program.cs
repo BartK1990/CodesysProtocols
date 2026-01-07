@@ -12,7 +12,13 @@ builder.AddServiceDefaults();
 
 // Add DbContext with SQL Server
 builder.Services.AddDbContext<CodesysProtocolsDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("MsSqlServerDb")));
+{
+    var connectionString =
+        builder.Configuration.GetConnectionString("CodesysProtocols")
+        ?? builder.Configuration.GetConnectionString("MsSqlServerDb");
+
+    options.UseSqlServer(connectionString);
+});
 
 // Add services to the container.
 builder.Services.AddScoped<IIec608705ConverterService, Iec608705ConverterService>();

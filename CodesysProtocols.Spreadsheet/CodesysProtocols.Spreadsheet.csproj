@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="EPPlus" Version="4.5.3.3" />
+    <PackageReference Include="OfficeIMO.Excel" Version="0.6.0" />
   </ItemGroup>
 
   <ItemGroup>
