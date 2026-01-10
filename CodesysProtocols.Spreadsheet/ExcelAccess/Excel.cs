@@ -4,12 +4,12 @@ namespace CodesysProtocols.Spreadsheet.ExcelAccess;
 
 public class Excel
 {
-    public static ExcelDocument GetExcelPackage(string path)
+    public static ExcelDocument GetExcelDocument(string path)
     {
         return ExcelDocument.Load(path, true, false);
     }
 
-    public static ExcelDocument GetExcelPackage(Stream stream)
+    public static ExcelDocument GetExcelDocument(Stream stream)
     {
         return ExcelDocument.Load(stream, true, false);
     }
@@ -17,11 +17,9 @@ public class Excel
     public static ExcelSheet GetSheet(ExcelDocument package, string sheetName)
     {
         var sheet = package.Sheets.FirstOrDefault(s => s.Name == sheetName);
-        if (sheet is null)
-        {
-            throw new InvalidOperationException($"Sheet '{sheetName}' not found in the document.");
-        }
-        return sheet;
+        return sheet is null 
+            ? throw new InvalidOperationException($"Sheet '{sheetName}' not found in the document.") 
+            : sheet;
     }
 
     public static string[] GetSheetNames(ExcelDocument package)
@@ -42,7 +40,6 @@ public class Excel
             return 0;
         }
 
-        // Parse the used range (e.g., "A1:C10") to get the last row
         var parts = usedRange.Split(':');
         if (parts.Length != 2)
         {
@@ -61,7 +58,6 @@ public class Excel
             return 0;
         }
 
-        // Parse the used range (e.g., "A1:C10") to get the last column
         var parts = usedRange.Split(':');
         if (parts.Length != 2)
         {

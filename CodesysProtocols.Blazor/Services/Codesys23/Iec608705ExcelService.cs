@@ -13,7 +13,7 @@ public class Iec608705ExcelService : IIec608705ExcelService
 
     private static string[] GetExcelSheetNames(Stream stream)
     {
-        using ExcelDocument package = Excel.GetExcelPackage(stream);
+        using ExcelDocument package = Excel.GetExcelDocument(stream);
         return Excel.GetSheetNames(package);
     }
 
@@ -25,7 +25,7 @@ public class Iec608705ExcelService : IIec608705ExcelService
         using var spreadsheetDoc = SpreadsheetDocument.Open(stream, false);
         using var reader = ExcelDocumentReader.Wrap(spreadsheetDoc, null);
         return Iec608705ExcelWorkbookValidation.SheetNames
-            .Select(sheetName => 
+            .Select(sheetName =>
             {
                 var sheetReader = reader.GetSheet(sheetName);
                 return ExcelIec608705Table.Read(sheetReader, sheetName);
@@ -38,36 +38,27 @@ public class Iec608705ExcelService : IIec608705ExcelService
 
     private static void WriteTablesToExcel(Stream outputStream, Iec608705Table[] tables)
     {
-        if (tables == null || tables.Length == 0)
+        if (tables is null || tables.Length == 0)
         {
             throw new ArgumentException("Tables array cannot be null or empty.", nameof(tables));
         }
 
-        // Create a temporary file with .xlsx extension since OfficeIMO.Excel requires a file path for creation
         string tempFile = Path.ChangeExtension(Path.GetTempFileName(), ".xlsx");
         try
         {
-            // Create document with first sheet
-            using (var document = ExcelDocument.Create(tempFile, tables[0].Name))
+            using var document = ExcelDocument.Create(tempFile, tables[0].Name);
+            var sheet = document.Sheets[0];
+            ExcelIec608705Table.Write(tables[0], sheet);
+            for (int i = 1; i < tables.Length; i++)
             {
-                // Write first table
-                var sheet = document.Sheets[0];
-                ExcelIec608705Table.Write(tables[0], sheet);
-
-                // Add remaining tables
-                for (int i = 1; i < tables.Length; i++)
-                {
-                    var worksheet = document.AddWorkSheet(tables[i].Name);
-                    ExcelIec608705Table.Write(tables[i], worksheet);
-                }
-
-                // Save to the output stream
-                document.Save(outputStream);
+                var worksheet = document.AddWorkSheet(tables[i].Name);
+                ExcelIec608705Table.Write(tables[i], worksheet);
             }
+
+            document.Save(outputStream);
         }
         finally
         {
-            // Clean up temp file
             if (File.Exists(tempFile))
             {
                 File.Delete(tempFile);

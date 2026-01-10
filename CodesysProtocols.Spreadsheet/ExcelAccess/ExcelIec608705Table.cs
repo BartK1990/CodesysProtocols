@@ -6,6 +6,7 @@ namespace CodesysProtocols.Spreadsheet.ExcelAccess;
 public class ExcelIec608705Table
 {
     private const string NoValue = "---";
+    private const string HeadersHtmlColor = @"#ADD8E6";
 
     public static Iec608705Table Read(ExcelSheetReader sheetReader, string sheetName)
     {
@@ -28,20 +29,19 @@ public class ExcelIec608705Table
             table.Columns.Add(column);
             for (int rowNo = 0; rowNo < rows; rowNo++)
             {
-                // Convert 0-indexed array access to 1-indexed row numbers for the table
                 int tableRowNo = rowNo + 1;
                 var cellValue = Excel.GetCellValue(data[rowNo, columnNo]);
                 
                 switch (tableRowNo)
                 {
                     case 1:
-                        column.NodeName = cellValue == NoValue ? null : cellValue;
+                        column.NodeName = (cellValue is NoValue ? null : cellValue) ?? string.Empty;
                         break;
                     case 2:
-                        column.Name = cellValue == NoValue ? null : cellValue;
+                        column.Name = (cellValue is NoValue ? null : cellValue) ?? string.Empty;
                         break;
                     case 3:
-                        column.Type = cellValue == NoValue ? null : cellValue;
+                        column.Type = (cellValue is NoValue ? null : cellValue) ?? string.Empty;
                         break;
                     default:
                         if (cellValue is null)
@@ -70,7 +70,6 @@ public class ExcelIec608705Table
         {
             var column = table.Columns[i];
 
-            // OfficeIMO uses 1-indexed rows and columns
             sheet.CellValue(1, i + 1, column.NodeName ?? NoValue);
             sheet.CellValue(2, i + 1, column.Name ?? NoValue);
             sheet.CellValue(3, i + 1, column.Type ?? NoValue);
@@ -81,7 +80,29 @@ public class ExcelIec608705Table
             }
         }
 
-        // Note: OfficeIMO.Excel doesn't support AutoFilter, FreezePanes, or styling in the same way as EPPlus
-        // These features would need to be implemented differently or omitted
+        PrepareSheet(sheet);
+    }
+
+    private static void PrepareSheet(ExcelSheet sheet)
+    {
+        var lastColumn = Excel.GetLastSheetColumn(sheet);
+        if (lastColumn < 1)
+        {
+            return;
+        }
+
+        sheet.AddAutoFilter($"A3:{A1.ColumnIndexToLetters(lastColumn)}3");
+        sheet.Freeze(topRows: 3, leftCols: 4);
+        sheet.AutoFitColumns();
+
+        var range = new Range(1, 1, 3, lastColumn);
+
+        range.Apply((x, y) => sheet.CellBackground(x, y, HeadersHtmlColor));
+
+        // ToDo: Add border support by extending OfficeIMO
+        //range.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+        //range.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+        //range.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+        //range.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
     }
 }
