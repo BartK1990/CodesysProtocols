@@ -1,67 +1,70 @@
-﻿using OfficeOpenXml;
+﻿using OfficeIMO.Excel;
 
 namespace CodesysProtocols.Spreadsheet.ExcelAccess;
 
 public class Excel
 {
-    public static ExcelPackage GetExcelPackage(string path)
+    public static ExcelDocument GetExcelDocument(string path)
     {
-        FileInfo fileInfo = new(path);
-        return new ExcelPackage(fileInfo);
+        return ExcelDocument.Load(path, true, false);
     }
 
-    public static ExcelPackage GetExcelPackage(Stream stream) => new(stream);
-
-    public static ExcelWorksheet GetSheet(ExcelPackage package, string sheetName)
+    public static ExcelDocument GetExcelDocument(Stream stream)
     {
-        return package.Workbook.Worksheets[sheetName];
+        return ExcelDocument.Load(stream, true, false);
     }
 
-    public static string[] GetSheetNames(ExcelPackage package)
+    public static ExcelSheet GetSheet(ExcelDocument package, string sheetName)
     {
-        return package.Workbook.Worksheets.Select(w => w.Name).ToArray();
+        var sheet = package.Sheets.FirstOrDefault(s => s.Name == sheetName);
+        return sheet is null 
+            ? throw new InvalidOperationException($"Sheet '{sheetName}' not found in the document.") 
+            : sheet;
     }
 
-    public static string? GetCellValue(object cell)
+    public static string[] GetSheetNames(ExcelDocument package)
+    {
+        return package.Sheets.Select(w => w.Name).ToArray();
+    }
+
+    public static string? GetCellValue(object? cell)
     {
         return cell?.ToString();
     }
 
-    public static int GetLastSheetRow(ExcelWorksheet worksheet)
+    public static int GetLastSheetRow(ExcelSheet worksheet)
     {
-        if (worksheet.Dimension is null)
+        var usedRange = worksheet.UsedRangeA1;
+        if (string.IsNullOrEmpty(usedRange))
         {
             return 0;
         }
-        var row = worksheet.Dimension.Rows;
-        while (row >= 1)
+
+        var parts = usedRange.Split(':');
+        if (parts.Length != 2)
         {
-            var range = worksheet.Cells[row, 1, row, worksheet.Dimension.Columns];
-            if (range.Any(c => !string.IsNullOrEmpty(c.Text)))
-            {
-                break;
-            }
-            row--;
+            return 0;
         }
-        return row;
+
+        var (lastRow, _) = A1.ParseCellRef(parts[1]);
+        return lastRow;
     }
 
-    public static int GetLastSheetColumn(ExcelWorksheet worksheet)
+    public static int GetLastSheetColumn(ExcelSheet worksheet)
     {
-        if (worksheet.Dimension is null)
+        var usedRange = worksheet.UsedRangeA1;
+        if (string.IsNullOrEmpty(usedRange))
         {
             return 0;
         }
-        var column = worksheet.Dimension.Columns;
-        while (column >= 1)
+
+        var parts = usedRange.Split(':');
+        if (parts.Length != 2)
         {
-            var range = worksheet.Cells[1, column, worksheet.Dimension.Rows, column];
-            if (range.Any(c => !string.IsNullOrEmpty(c.Text)))
-            {
-                break;
-            }
-            column--;
+            return 0;
         }
-        return column;
+
+        var (_, lastColumn) = A1.ParseCellRef(parts[1]);
+        return lastColumn;
     }
 }

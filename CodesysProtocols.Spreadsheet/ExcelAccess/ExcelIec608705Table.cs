@@ -1,44 +1,49 @@
 ﻿using CodesysProtocols.Model.TableData.Iec608705;
-using OfficeOpenXml;
-using OfficeOpenXml.Style;
+using OfficeIMO.Excel;
 
 namespace CodesysProtocols.Spreadsheet.ExcelAccess;
 
 public class ExcelIec608705Table
 {
     private const string NoValue = "---";
-
     private const string HeadersHtmlColor = @"#ADD8E6";
 
-    public static Iec608705Table Read(ExcelWorksheet ws)
+    public static Iec608705Table Read(ExcelSheetReader sheetReader, string sheetName)
     {
-        int rows = Excel.GetLastSheetRow(ws);
-        int columns = Excel.GetLastSheetColumn(ws);
+        var usedRange = sheetReader.GetUsedRangeA1();
+        if (string.IsNullOrEmpty(usedRange))
+        {
+            return new Iec608705Table { Name = sheetName };
+        }
 
-        var table = new Iec608705Table { Name = ws.Name };
+        // Read the entire used range into an array
+        var data = sheetReader.ReadRange(usedRange, null, default);
+        int rows = data.GetLength(0);
+        int columns = data.GetLength(1);
 
-        for (int columnNo = 1; columnNo <= columns; columnNo++)
+        var table = new Iec608705Table { Name = sheetName };
+
+        for (int columnNo = 0; columnNo < columns; columnNo++)
         {
             var column = new Iec608705Column();
             table.Columns.Add(column);
-            for (int rowNo = 1; rowNo <= rows; rowNo++)
+            for (int rowNo = 0; rowNo < rows; rowNo++)
             {
-                switch (rowNo)
+                int tableRowNo = rowNo + 1;
+                var cellValue = Excel.GetCellValue(data[rowNo, columnNo]);
+                
+                switch (tableRowNo)
                 {
                     case 1:
-                        string nodeName = Excel.GetCellValue(ws.Cells[rowNo, columnNo].Value);
-                        column.NodeName = nodeName == NoValue ? null : nodeName;
+                        column.NodeName = (cellValue is NoValue ? null : cellValue) ?? string.Empty;
                         break;
                     case 2:
-                        string name = Excel.GetCellValue(ws.Cells[rowNo, columnNo].Value);
-                        column.Name = name == NoValue ? null : name;
+                        column.Name = (cellValue is NoValue ? null : cellValue) ?? string.Empty;
                         break;
                     case 3:
-                        string type = Excel.GetCellValue(ws.Cells[rowNo, columnNo].Value);
-                        column.Type = type == NoValue ? null : type;
+                        column.Type = (cellValue is NoValue ? null : cellValue) ?? string.Empty;
                         break;
                     default:
-                        var cellValue = Excel.GetCellValue(ws.Cells[rowNo, columnNo].Value);
                         if (cellValue is null)
                         {
                             break;
@@ -50,7 +55,7 @@ public class ExcelIec608705Table
                         }
 
                         column.Values.Add(new Iec608705TableValue 
-                            { Row = rowNo, Value = cellValue });
+                            { Row = tableRowNo, Value = cellValue });
                         break;
                 }
             }
@@ -59,44 +64,45 @@ public class ExcelIec608705Table
         return table;
     }
 
-    public static void Write(Iec608705Table table, ExcelWorksheet ws)
+    public static void Write(Iec608705Table table, ExcelSheet sheet)
     {
         for (int i = 0; i < table.Columns.Count; i++)
         {
             var column = table.Columns[i];
 
-            ws.Cells[1, i + 1].Value = column.NodeName ?? NoValue;
-            ws.Cells[2, i + 1].Value = column.Name ?? NoValue;
-            ws.Cells[3, i + 1].Value = column.Type ?? NoValue;
+            sheet.CellValue(1, i + 1, column.NodeName ?? NoValue);
+            sheet.CellValue(2, i + 1, column.Name ?? NoValue);
+            sheet.CellValue(3, i + 1, column.Type ?? NoValue);
 
             foreach (var value in column.Values)
             {
-                ws.Cells[value.Row, i + 1].Value = string.IsNullOrEmpty(value.Value) ? NoValue : value.Value;
+                sheet.CellValue(value.Row, i + 1, string.IsNullOrEmpty(value.Value) ? NoValue : value.Value);
             }
         }
 
-        PrepareSheet(ws);
+        PrepareSheet(sheet);
     }
 
-    private static void PrepareSheet(ExcelWorksheet ws)
+    private static void PrepareSheet(ExcelSheet sheet)
     {
-        var lastColumn = Excel.GetLastSheetColumn(ws);
+        var lastColumn = Excel.GetLastSheetColumn(sheet);
         if (lastColumn < 1)
         {
             return;
         }
 
-        ws.Cells[3, 1, 3, lastColumn].AutoFilter = true;
-        ws.View.FreezePanes(4, 5);
+        sheet.AddAutoFilter($"A3:{A1.ColumnIndexToLetters(lastColumn)}3");
+        sheet.Freeze(topRows: 3, leftCols: 4);
+        sheet.AutoFitColumns();
 
-        ExcelRange range = ws.Cells[1, 1, 3, lastColumn];
-        range.AutoFitColumns();
-        range.Style.Fill.PatternType = ExcelFillStyle.Solid;
-        // ToDo: Replace EPPlus with OfficeIMO
-        // range.Style.Fill.BackgroundColor.SetColor(FromHtmlUsingSkia(HeadersHtmlColor));
-        range.Style.Border.Top.Style = ExcelBorderStyle.Thin;
-        range.Style.Border.Left.Style = ExcelBorderStyle.Thin;
-        range.Style.Border.Right.Style = ExcelBorderStyle.Thin;
-        range.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+        var range = new Range(1, 1, 3, lastColumn);
+
+        range.Apply((x, y) => sheet.CellBackground(x, y, HeadersHtmlColor));
+
+        // ToDo: Add border support by extending OfficeIMO
+        //range.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+        //range.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+        //range.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+        //range.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
     }
 }
