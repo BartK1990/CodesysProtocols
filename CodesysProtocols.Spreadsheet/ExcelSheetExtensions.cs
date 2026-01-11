@@ -74,6 +74,12 @@ public static class ExcelSheetExtensions
         spreadsheetDocument.WorkbookPart?.WorkbookStylesPart?.Stylesheet.Save();
     }
 
+    /// <summary>
+    /// Gets the underlying SpreadsheetDocument from an ExcelSheet using reflection.
+    /// Note: This uses reflection to access private fields since OfficeIMO doesn't expose
+    /// the underlying OpenXML objects through its public API. This approach is necessary
+    /// to extend OfficeIMO's functionality but creates a dependency on internal implementation details.
+    /// </summary>
     private static SpreadsheetDocument? GetSpreadsheetDocument(ExcelSheet sheet)
     {
         try
@@ -100,9 +106,11 @@ public static class ExcelSheetExtensions
                 }
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Fallback - return null if reflection fails
+            // If reflection fails (e.g., due to OfficeIMO internal changes), return null
+            // The caller will handle the null case appropriately
+            System.Diagnostics.Debug.WriteLine($"Failed to get SpreadsheetDocument via reflection: {ex.Message}");
         }
         
         return null;
@@ -124,9 +132,10 @@ public static class ExcelSheetExtensions
                 return workbookPart.GetPartById(sheetElement.Id.Value) as WorksheetPart;
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Return null if we can't find the worksheet part
+            // Log and return null if we can't find the worksheet part
+            System.Diagnostics.Debug.WriteLine($"Failed to get WorksheetPart: {ex.Message}");
         }
         
         return null;
@@ -277,15 +286,21 @@ public static class ExcelSheetExtensions
             // Preserve existing font and fill if the cell already has a style
             if (cell.StyleIndex?.Value != null)
             {
-                var existingCellFormat = cellFormats.ElementAt((int)cell.StyleIndex.Value) as CellFormat;
-                if (existingCellFormat != null)
+                var styleIndex = (int)cell.StyleIndex.Value;
+                // Use ChildElements as an indexed list for better performance
+                var childElements = cellFormats.ChildElements;
+                if (styleIndex >= 0 && styleIndex < childElements.Count)
                 {
-                    cellFormat.FontId = existingCellFormat.FontId;
-                    cellFormat.FillId = existingCellFormat.FillId;
-                    cellFormat.NumberFormatId = existingCellFormat.NumberFormatId;
-                    cellFormat.ApplyFont = existingCellFormat.ApplyFont;
-                    cellFormat.ApplyFill = existingCellFormat.ApplyFill;
-                    cellFormat.ApplyNumberFormat = existingCellFormat.ApplyNumberFormat;
+                    var existingCellFormat = childElements[styleIndex] as CellFormat;
+                    if (existingCellFormat != null)
+                    {
+                        cellFormat.FontId = existingCellFormat.FontId;
+                        cellFormat.FillId = existingCellFormat.FillId;
+                        cellFormat.NumberFormatId = existingCellFormat.NumberFormatId;
+                        cellFormat.ApplyFont = existingCellFormat.ApplyFont;
+                        cellFormat.ApplyFill = existingCellFormat.ApplyFill;
+                        cellFormat.ApplyNumberFormat = existingCellFormat.ApplyNumberFormat;
+                    }
                 }
             }
 
