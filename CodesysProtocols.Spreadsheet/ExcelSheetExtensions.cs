@@ -35,7 +35,26 @@ public static class ExcelSheetExtensions
     /// <param name="bottomStyle">Bottom border style</param>
     /// <param name="leftStyle">Left border style</param>
     /// <param name="rightStyle">Right border style</param>
-    /// <param name="color">Border color in hex format (e.g., "000000" for black)</param>
+    /// <param name="color">Border color in hex format (e.g., "000000" for black, "FF0000" for red)</param>
+    /// <example>
+    /// <code>
+    /// // Apply thin black borders on all sides
+    /// sheet.CellBorder(1, 1, 
+    ///     topStyle: BorderStyle.Thin, 
+    ///     bottomStyle: BorderStyle.Thin,
+    ///     leftStyle: BorderStyle.Thin, 
+    ///     rightStyle: BorderStyle.Thin,
+    ///     color: "000000");
+    /// 
+    /// // Apply thick red borders
+    /// sheet.CellBorder(2, 2, 
+    ///     topStyle: BorderStyle.Thick, 
+    ///     bottomStyle: BorderStyle.Thick,
+    ///     leftStyle: BorderStyle.Thick, 
+    ///     rightStyle: BorderStyle.Thick,
+    ///     color: "FF0000");
+    /// </code>
+    /// </example>
     public static void CellBorder(
         this ExcelSheet sheet,
         int row,
