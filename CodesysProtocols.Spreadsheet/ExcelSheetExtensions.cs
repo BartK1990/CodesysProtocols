@@ -69,29 +69,33 @@ public static class ExcelSheetExtensions
         // Apply the border to the cell
         ApplyCellFormat(cell, styleSheet, borderId);
         
+        // Save changes
         worksheetPart.Worksheet.Save();
+        spreadsheetDocument.WorkbookPart?.WorkbookStylesPart?.Stylesheet.Save();
     }
 
     private static SpreadsheetDocument? GetSpreadsheetDocument(ExcelSheet sheet)
     {
         try
         {
-            // Try to get the SpreadsheetDocument via reflection from ExcelSheet
-            var excelDocField = sheet.GetType().GetField("_document", BindingFlags.NonPublic | BindingFlags.Instance);
-            if (excelDocField == null)
+            // Try to get the SpreadsheetDocument directly from ExcelSheet
+            var spreadsheetDocField = sheet.GetType().GetField("_spreadSheetDocument", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (spreadsheetDocField != null)
             {
-                excelDocField = sheet.GetType().GetField("_excelDocument", BindingFlags.NonPublic | BindingFlags.Instance);
+                return spreadsheetDocField.GetValue(sheet) as SpreadsheetDocument;
             }
             
+            // Fallback: Try to get via ExcelDocument
+            var excelDocField = sheet.GetType().GetField("_excelDocument", BindingFlags.NonPublic | BindingFlags.Instance);
             if (excelDocField != null)
             {
                 var excelDoc = excelDocField.GetValue(sheet);
                 if (excelDoc != null)
                 {
-                    var spreadsheetDocField = excelDoc.GetType().GetField("_spreadsheetDocument", BindingFlags.NonPublic | BindingFlags.Instance);
-                    if (spreadsheetDocField != null)
+                    var spreadsheetDocFromExcelDoc = excelDoc.GetType().GetField("_spreadSheetDocument", BindingFlags.NonPublic | BindingFlags.Instance);
+                    if (spreadsheetDocFromExcelDoc != null)
                     {
-                        return spreadsheetDocField.GetValue(excelDoc) as SpreadsheetDocument;
+                        return spreadsheetDocFromExcelDoc.GetValue(excelDoc) as SpreadsheetDocument;
                     }
                 }
             }
