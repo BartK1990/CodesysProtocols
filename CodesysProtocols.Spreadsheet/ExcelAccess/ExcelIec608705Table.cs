@@ -97,13 +97,13 @@ public class ExcelIec608705Table
 
         var range = new Range(1, 1, 3, lastColumn);
 
-        range.Apply((x, y) => sheet.CellBackground(x, y, HeadersHtmlColor));
-
-        // Add border support by extending OfficeIMO
-        range.Apply((x, y) => sheet.CellBorder(x, y, 
-            topStyle: ExcelSheetExtensions.BorderStyle.Thin,
-            bottomStyle: ExcelSheetExtensions.BorderStyle.Thin,
-            leftStyle: ExcelSheetExtensions.BorderStyle.Thin,
-            rightStyle: ExcelSheetExtensions.BorderStyle.Thin));
+        range.Apply([
+            (x, y) => sheet.CellBackground(x, y, HeadersHtmlColor),
+            (x, y) => sheet.CellBorder(x, y,
+            topStyle: BorderStyle.Thin,
+            bottomStyle: BorderStyle.Thin,
+            leftStyle: BorderStyle.Thin,
+            rightStyle: BorderStyle.Thin)
+        ]);
     }
 }

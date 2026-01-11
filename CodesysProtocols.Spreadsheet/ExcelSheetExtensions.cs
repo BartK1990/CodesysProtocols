@@ -12,20 +12,6 @@ namespace CodesysProtocols.Spreadsheet;
 public static class ExcelSheetExtensions
 {
     /// <summary>
-    /// Border style options for Excel cells
-    /// </summary>
-    public enum BorderStyle
-    {
-        None,
-        Thin,
-        Medium,
-        Thick,
-        Double,
-        Dotted,
-        Dashed
-    }
-
-    /// <summary>
     /// Applies border to a single cell using OpenXML
     /// </summary>
     /// <param name="sheet">The Excel sheet</param>
