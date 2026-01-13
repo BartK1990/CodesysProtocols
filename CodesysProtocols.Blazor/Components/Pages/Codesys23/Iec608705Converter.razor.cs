@@ -111,7 +111,7 @@ public partial class Iec608705Converter
         }
         catch (Exception e)
         {
-            LogError($"File loading failure. Error: {e.Message}");
+            LogError($"File loading failure. Error: {e.Message}.StackTrace: {e.StackTrace}");
             ProtocolConfigurationName = null;
         }
         finally
