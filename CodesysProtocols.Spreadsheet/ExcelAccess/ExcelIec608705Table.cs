@@ -95,19 +95,14 @@ public class ExcelIec608705Table
         sheet.AddAutoFilter($"A3:{A1.ColumnIndexToLetters(lastColumn)}3");
         sheet.Freeze(topRows: 3, leftCols: 4);
         
-        try
+        // Use custom AutoFitColumns that doesn't rely on font information
+        var excelSpreadsheet = ExcelSheetExtensions.GetExcelSpreadsheet(sheet);
+        if (excelSpreadsheet != null)
         {
-            sheet.AutoFitColumns();
-        }
-        catch (InvalidOperationException)
-        {
-            // AutoFitColumns can fail in containerized environments where font information
-            // is not available (e.g., Docker). This is a non-critical feature, so we continue
-            // without auto-fitting columns.
+            excelSpreadsheet.AutoFitColumns();
         }
 
         var range = new ExcelRange(1, 1, 3, lastColumn);
-        var excelSpreadsheet = ExcelSheetExtensions.GetExcelSpreadsheet(sheet);
         if (excelSpreadsheet is null) return;
 
         range.Apply([
