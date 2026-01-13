@@ -1,169 +1,56 @@
-using DocumentFormat.OpenXml;
+﻿using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using OfficeIMO.Excel;
-using System.Reflection;
 
-namespace CodesysProtocols.Spreadsheet;
+namespace CodesysProtocols.Spreadsheet.OfficeImoExtensions;
 
-/// <summary>
-/// Extension methods for ExcelSheet to support additional OpenXML features
-/// </summary>
-public static class ExcelSheetExtensions
+public record ExcelSpreadsheet(SpreadsheetDocument SpreadsheetDocument, WorksheetPart WorksheetPart)
 {
-    /// <summary>
-    /// Border style options for Excel cells
-    /// </summary>
-    public enum BorderStyle
-    {
-        None,
-        Thin,
-        Medium,
-        Thick,
-        Double,
-        Dotted,
-        Dashed
-    }
-
-    /// <summary>
-    /// Applies border to a single cell using OpenXML
-    /// </summary>
-    /// <param name="sheet">The Excel sheet</param>
-    /// <param name="row">Row number (1-based)</param>
-    /// <param name="col">Column number (1-based)</param>
-    /// <param name="topStyle">Top border style</param>
-    /// <param name="bottomStyle">Bottom border style</param>
-    /// <param name="leftStyle">Left border style</param>
-    /// <param name="rightStyle">Right border style</param>
-    /// <param name="color">Border color in hex format (e.g., "000000" for black, "FF0000" for red)</param>
-    /// <example>
-    /// <code>
-    /// // Apply thin black borders on all sides
-    /// sheet.CellBorder(1, 1, 
-    ///     topStyle: BorderStyle.Thin, 
-    ///     bottomStyle: BorderStyle.Thin,
-    ///     leftStyle: BorderStyle.Thin, 
-    ///     rightStyle: BorderStyle.Thin,
-    ///     color: "000000");
-    /// 
-    /// // Apply thick red borders
-    /// sheet.CellBorder(2, 2, 
-    ///     topStyle: BorderStyle.Thick, 
-    ///     bottomStyle: BorderStyle.Thick,
-    ///     leftStyle: BorderStyle.Thick, 
-    ///     rightStyle: BorderStyle.Thick,
-    ///     color: "FF0000");
-    /// </code>
-    /// </example>
-    public static void CellBorder(
-        this ExcelSheet sheet,
+    public void CellBorder(
         int row,
         int col,
         BorderStyle topStyle = BorderStyle.None,
         BorderStyle bottomStyle = BorderStyle.None,
         BorderStyle leftStyle = BorderStyle.None,
         BorderStyle rightStyle = BorderStyle.None,
-        string? color = null)
+        string? color = null,
+        bool save = true)
     {
-        // Get the underlying OpenXML objects using reflection
-        var spreadsheetDocument = GetSpreadsheetDocument(sheet);
-        if (spreadsheetDocument == null) return;
-
-        var worksheetPart = GetWorksheetPart(sheet, spreadsheetDocument);
-        if (worksheetPart == null) return;
-
-        var worksheet = worksheetPart.Worksheet;
+        if (WorksheetPart.Worksheet is null) return;
+        var worksheet = WorksheetPart.Worksheet;
         var sheetData = worksheet.GetFirstChild<SheetData>();
         if (sheetData == null) return;
 
         // Get or create the cell
         var cell = GetOrCreateCell(worksheet, sheetData, row, col);
-        
+
         // Get or create stylesheet
-        var styleSheet = GetOrCreateStylesheet(spreadsheetDocument);
-        
+        var styleSheet = GetOrCreateStylesheet(SpreadsheetDocument);
+
         // Create or get border with specified styles
         var borderId = CreateBorder(styleSheet, topStyle, bottomStyle, leftStyle, rightStyle, color);
-        
+
         // Apply the border to the cell
         ApplyCellFormat(cell, styleSheet, borderId);
-        
-        // Save changes
-        worksheetPart.Worksheet.Save();
-        spreadsheetDocument.WorkbookPart?.WorkbookStylesPart?.Stylesheet.Save();
+
+        if (save)
+        {
+            WorksheetPart.Worksheet.Save();
+            SpreadsheetDocument.WorkbookPart?.WorkbookStylesPart?.Stylesheet?.Save();
+        }
     }
 
-    /// <summary>
-    /// Gets the underlying SpreadsheetDocument from an ExcelSheet using reflection.
-    /// Note: This uses reflection to access private fields since OfficeIMO doesn't expose
-    /// the underlying OpenXML objects through its public API. This approach is necessary
-    /// to extend OfficeIMO's functionality but creates a dependency on internal implementation details.
-    /// </summary>
-    private static SpreadsheetDocument? GetSpreadsheetDocument(ExcelSheet sheet)
+    public void Save()
     {
-        try
-        {
-            // Try to get the SpreadsheetDocument directly from ExcelSheet
-            var spreadsheetDocField = sheet.GetType().GetField("_spreadSheetDocument", BindingFlags.NonPublic | BindingFlags.Instance);
-            if (spreadsheetDocField != null)
-            {
-                return spreadsheetDocField.GetValue(sheet) as SpreadsheetDocument;
-            }
-            
-            // Fallback: Try to get via ExcelDocument
-            var excelDocField = sheet.GetType().GetField("_excelDocument", BindingFlags.NonPublic | BindingFlags.Instance);
-            if (excelDocField != null)
-            {
-                var excelDoc = excelDocField.GetValue(sheet);
-                if (excelDoc != null)
-                {
-                    var spreadsheetDocFromExcelDoc = excelDoc.GetType().GetField("_spreadSheetDocument", BindingFlags.NonPublic | BindingFlags.Instance);
-                    if (spreadsheetDocFromExcelDoc != null)
-                    {
-                        return spreadsheetDocFromExcelDoc.GetValue(excelDoc) as SpreadsheetDocument;
-                    }
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            // If reflection fails (e.g., due to OfficeIMO internal changes), return null
-            // The caller will handle the null case appropriately
-            System.Diagnostics.Debug.WriteLine($"Failed to get SpreadsheetDocument via reflection: {ex.Message}");
-        }
-        
-        return null;
-    }
-
-    private static WorksheetPart? GetWorksheetPart(ExcelSheet sheet, SpreadsheetDocument spreadsheetDocument)
-    {
-        try
-        {
-            var workbookPart = spreadsheetDocument.WorkbookPart;
-            if (workbookPart == null) return null;
-
-            // Find the worksheet part by sheet name
-            var sheets = workbookPart.Workbook.Sheets;
-            var sheetElement = sheets?.Elements<Sheet>().FirstOrDefault(s => s.Name == sheet.Name);
-            
-            if (sheetElement?.Id?.Value != null)
-            {
-                return workbookPart.GetPartById(sheetElement.Id.Value) as WorksheetPart;
-            }
-        }
-        catch (Exception ex)
-        {
-            // Log and return null if we can't find the worksheet part
-            System.Diagnostics.Debug.WriteLine($"Failed to get WorksheetPart: {ex.Message}");
-        }
-        
-        return null;
+        WorksheetPart.Worksheet?.Save();
+        SpreadsheetDocument.WorkbookPart?.WorkbookStylesPart?.Stylesheet?.Save();
     }
 
     private static Cell GetOrCreateCell(Worksheet worksheet, SheetData sheetData, int rowIndex, int columnIndex)
     {
         var cellReference = $"{A1.ColumnIndexToLetters(columnIndex)}{rowIndex}";
-        
+
         // Find or create the row
         Row? row = sheetData.Elements<Row>().FirstOrDefault(r => r.RowIndex?.Value == (uint)rowIndex);
         if (row == null)
@@ -185,12 +72,9 @@ public static class ExcelSheetExtensions
 
     private static Stylesheet GetOrCreateStylesheet(SpreadsheetDocument spreadsheetDocument)
     {
-        var workbookPart = spreadsheetDocument.WorkbookPart;
-        if (workbookPart == null)
-            throw new InvalidOperationException("WorkbookPart is null");
-
+        var workbookPart = spreadsheetDocument.WorkbookPart ?? throw new InvalidOperationException("WorkbookPart is null");
         var workbookStylesPart = workbookPart.WorkbookStylesPart;
-        if (workbookStylesPart == null)
+        if (workbookStylesPart?.Stylesheet is null)
         {
             workbookStylesPart = workbookPart.AddNewPart<WorkbookStylesPart>();
             workbookStylesPart.Stylesheet = new Stylesheet(
@@ -220,22 +104,22 @@ public static class ExcelSheetExtensions
         }
 
         var border = new Border();
-        
+
         if (leftStyle != BorderStyle.None)
         {
             border.LeftBorder = CreateBorderElement<LeftBorder>(leftStyle, color);
         }
-        
+
         if (rightStyle != BorderStyle.None)
         {
             border.RightBorder = CreateBorderElement<RightBorder>(rightStyle, color);
         }
-        
+
         if (topStyle != BorderStyle.None)
         {
             border.TopBorder = CreateBorderElement<TopBorder>(topStyle, color);
         }
-        
+
         if (bottomStyle != BorderStyle.None)
         {
             border.BottomBorder = CreateBorderElement<BottomBorder>(bottomStyle, color);
@@ -306,12 +190,10 @@ public static class ExcelSheetExtensions
             if (cell.StyleIndex?.Value != null)
             {
                 var styleIndex = (int)cell.StyleIndex.Value;
-                // Use ChildElements as an indexed list for better performance
                 var childElements = cellFormats.ChildElements;
                 if (styleIndex >= 0 && styleIndex < childElements.Count)
                 {
-                    var existingCellFormat = childElements[styleIndex] as CellFormat;
-                    if (existingCellFormat != null)
+                    if (childElements[styleIndex] is CellFormat existingCellFormat)
                     {
                         cellFormat.FontId = existingCellFormat.FontId;
                         cellFormat.FillId = existingCellFormat.FillId;
@@ -331,3 +213,4 @@ public static class ExcelSheetExtensions
         cell.StyleIndex = formatId;
     }
 }
+
