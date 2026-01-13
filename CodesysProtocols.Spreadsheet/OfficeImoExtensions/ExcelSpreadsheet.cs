@@ -62,6 +62,10 @@ public record ExcelSpreadsheet(SpreadsheetDocument SpreadsheetDocument, Workshee
         var sheetData = worksheet.GetFirstChild<SheetData>();
         if (sheetData == null) return;
 
+        // Cache shared strings for efficient lookup
+        var sharedStrings = SpreadsheetDocument.WorkbookPart?.SharedStringTablePart?.SharedStringTable?
+            .Elements<SharedStringItem>().ToArray();
+
         // Get or create Columns element
         var columns = worksheet.GetFirstChild<Columns>();
         if (columns == null)
@@ -80,7 +84,7 @@ public record ExcelSpreadsheet(SpreadsheetDocument SpreadsheetDocument, Workshee
                 if (cell.CellReference?.Value == null) continue;
                 
                 var columnIndex = GetColumnIndex(cell.CellReference.Value);
-                var cellText = GetCellText(cell);
+                var cellText = GetCellText(cell, sharedStrings);
                 var contentLength = cellText?.Length ?? 0;
                 
                 if (!columnWidths.ContainsKey(columnIndex) || columnWidths[columnIndex] < contentLength)
@@ -140,20 +144,18 @@ public record ExcelSpreadsheet(SpreadsheetDocument SpreadsheetDocument, Workshee
         return columnIndex;
     }
 
-    private string? GetCellText(Cell cell)
+    private static string? GetCellText(Cell cell, SharedStringItem[]? sharedStrings)
     {
         if (cell.CellValue == null) return null;
         
         var value = cell.CellValue.Text;
         
         // If it's a shared string, look it up in the shared string table
-        if (cell.DataType?.Value == CellValues.SharedString)
+        if (cell.DataType?.Value == CellValues.SharedString && sharedStrings != null)
         {
-            var stringTable = SpreadsheetDocument.WorkbookPart?.SharedStringTablePart?.SharedStringTable;
-            if (stringTable != null && int.TryParse(value, out int index))
+            if (int.TryParse(value, out int index) && index >= 0 && index < sharedStrings.Length)
             {
-                var sharedString = stringTable.Elements<SharedStringItem>().ElementAtOrDefault(index);
-                return sharedString?.InnerText;
+                return sharedStrings[index]?.InnerText;
             }
         }
         
