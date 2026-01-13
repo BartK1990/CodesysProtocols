@@ -94,7 +94,17 @@ public class ExcelIec608705Table
 
         sheet.AddAutoFilter($"A3:{A1.ColumnIndexToLetters(lastColumn)}3");
         sheet.Freeze(topRows: 3, leftCols: 4);
-        sheet.AutoFitColumns();
+        
+        try
+        {
+            sheet.AutoFitColumns();
+        }
+        catch (InvalidOperationException)
+        {
+            // AutoFitColumns can fail in containerized environments where font information
+            // is not available (e.g., Docker). This is a non-critical feature, so we continue
+            // without auto-fitting columns.
+        }
 
         var range = new ExcelRange(1, 1, 3, lastColumn);
         var excelSpreadsheet = ExcelSheetExtensions.GetExcelSpreadsheet(sheet);
