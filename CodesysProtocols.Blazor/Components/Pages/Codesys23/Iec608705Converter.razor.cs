@@ -3,6 +3,7 @@ using CodesysProtocols.DataAccess.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.FluentUI.AspNetCore.Components;
 using Microsoft.JSInterop;
+using System.Diagnostics;
 using System.Xml.Linq;
 
 namespace CodesysProtocols.Blazor.Components.Pages.Codesys23;
@@ -85,45 +86,22 @@ public partial class Iec608705Converter
                 case ".xlsx":
                 case ".xlsm":
                 case ".xls":
-
-                    string[] sheetsNames = await IecExcelService.GetExcelSheetNamesAsync(fileStream);
-                    if (!await IecExcelWorkbookValidationService.CheckIfContainsValidSheetsAsync(sheetsNames))
                     {
-                        LogError("Excel does not contain all required sheet names");
-                        return;
-                    }
-
-                    var tablesFromExcel = await IecExcelService.ReadTablesFromExcelAsync(fileStream);
-                    if (tablesFromExcel is null)
-                    {
-                        LogError("Excel does not contain all required sheet names");
+                        var sw = Stopwatch.StartNew();
+                        await HandleExcel(fileStream);
+                        sw.Stop();
+                        Log($"Protocol configuration Excel loaded. Excel processing time: {sw.ElapsedMilliseconds} ms");
                         break;
                     }
 
-                    var xmlDoc = await IecConverterService.DataToXmlAsync(tablesFromExcel);
-                    using (var ms = new MemoryStream())
-                    {
-                        xmlDoc.Save(ms);
-                        _generatedXmlBytes = ms.ToArray();
-                    }
-
-                    ToXmlCounter++;
-                    Log("Protocol configuration Excel loaded");
-                    break;
-
                 case ".xml":
-                    fileStream.Position = 0;
-                    XDocument xml = XDocument.Load(fileStream);
-                    var tablesFromXml = await IecConverterService.XmlToDataAsync(xml);
-                    using (var ms = new MemoryStream())
                     {
-                        await IecExcelService.GetExcelFromTablesAsync(ms, tablesFromXml);
-                        _generatedExcelBytes = ms.ToArray();
+                        var sw = Stopwatch.StartNew();
+                        await HandleXml(fileStream);
+                        sw.Stop();
+                        Log($"Protocol configuration XML file loaded. XML processing time: {sw.ElapsedMilliseconds} ms");
+                        break;
                     }
-
-                    ToExcelCounter++;
-                    Log("Protocol configuration XML file loaded");
-                    break;
 
                 default:
                     Log("Drop something else! Wrong file type");
@@ -141,6 +119,46 @@ public partial class Iec608705Converter
             ProtocolConfigurationLoading = false;
             StateHasChanged();
         }
+    }
+
+    private async Task HandleXml(MemoryStream fileStream)
+    {
+        fileStream.Position = 0;
+        XDocument xml = XDocument.Load(fileStream);
+        var tablesFromXml = await IecConverterService.XmlToDataAsync(xml);
+        using (var ms = new MemoryStream())
+        {
+            await IecExcelService.GetExcelFromTablesAsync(ms, tablesFromXml);
+            _generatedExcelBytes = ms.ToArray();
+        }
+
+        ToExcelCounter++;
+    }
+
+    private async Task HandleExcel(MemoryStream fileStream)
+    {
+        string[] sheetsNames = await IecExcelService.GetExcelSheetNamesAsync(fileStream);
+        if (!await IecExcelWorkbookValidationService.CheckIfContainsValidSheetsAsync(sheetsNames))
+        {
+            LogError("Excel does not contain all required sheet names");
+            return;
+        }
+
+        var tablesFromExcel = await IecExcelService.ReadTablesFromExcelAsync(fileStream);
+        if (tablesFromExcel is null)
+        {
+            LogError("Excel does not contain all required sheet names");
+            return;
+        }
+
+        var xmlDoc = await IecConverterService.DataToXmlAsync(tablesFromExcel);
+        using (var ms = new MemoryStream())
+        {
+            xmlDoc.Save(ms);
+            _generatedXmlBytes = ms.ToArray();
+        }
+
+        ToXmlCounter++;
     }
 
     private void ResetOutputs()

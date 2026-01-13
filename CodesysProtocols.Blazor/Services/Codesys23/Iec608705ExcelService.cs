@@ -1,6 +1,7 @@
 ﻿using CodesysProtocols.Model;
 using CodesysProtocols.Model.TableData.Iec608705;
 using CodesysProtocols.Spreadsheet.ExcelAccess;
+using CodesysProtocols.Spreadsheet.OfficeImoExtensions;
 using DocumentFormat.OpenXml.Packaging;
 using OfficeIMO.Excel;
 
@@ -43,26 +44,16 @@ public class Iec608705ExcelService : IIec608705ExcelService
             throw new ArgumentException("Tables array cannot be null or empty.", nameof(tables));
         }
 
-        string tempFile = Path.ChangeExtension(Path.GetTempFileName(), ".xlsx");
-        try
+        using var ms = new MemoryStream();
+        using var document = ExcelDocument.Create(ms);
+        var sheet = document.AddWorkSheet(tables[0].Name, SheetNameValidationMode.Sanitize);
+        ExcelIec608705Table.Write(tables[0], sheet);
+        for (int i = 1; i < tables.Length; i++)
         {
-            using var document = ExcelDocument.Create(tempFile, tables[0].Name);
-            var sheet = document.Sheets[0];
-            ExcelIec608705Table.Write(tables[0], sheet);
-            for (int i = 1; i < tables.Length; i++)
-            {
-                var worksheet = document.AddWorkSheet(tables[i].Name);
-                ExcelIec608705Table.Write(tables[i], worksheet);
-            }
+            var worksheet = document.AddWorkSheet(tables[i].Name);
+            ExcelIec608705Table.Write(tables[i], worksheet);
+        }
 
-            document.Save(outputStream);
-        }
-        finally
-        {
-            if (File.Exists(tempFile))
-            {
-                File.Delete(tempFile);
-            }
-        }
+        document.Save(outputStream);
     }
 }

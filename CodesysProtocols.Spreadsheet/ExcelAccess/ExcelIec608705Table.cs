@@ -1,4 +1,5 @@
 ﻿using CodesysProtocols.Model.TableData.Iec608705;
+using CodesysProtocols.Spreadsheet.OfficeImoExtensions;
 using OfficeIMO.Excel;
 
 namespace CodesysProtocols.Spreadsheet.ExcelAccess;
@@ -95,15 +96,20 @@ public class ExcelIec608705Table
         sheet.Freeze(topRows: 3, leftCols: 4);
         sheet.AutoFitColumns();
 
-        var range = new Range(1, 1, 3, lastColumn);
+        var range = new ExcelRange(1, 1, 3, lastColumn);
+        var excelSpreadsheet = ExcelSheetExtensions.GetExcelSpreadsheet(sheet);
+        if (excelSpreadsheet is null) return;
 
         range.Apply([
             (x, y) => sheet.CellBackground(x, y, HeadersHtmlColor),
-            (x, y) => sheet.CellBorder(x, y,
-            topStyle: BorderStyle.Thin,
-            bottomStyle: BorderStyle.Thin,
-            leftStyle: BorderStyle.Thin,
-            rightStyle: BorderStyle.Thin)
+            (x, y) => excelSpreadsheet.CellBorder(x, y,
+                topStyle: BorderStyle.Thin,
+                bottomStyle: BorderStyle.Thin,
+                leftStyle: BorderStyle.Thin,
+                rightStyle: BorderStyle.Thin,
+                save: false)
         ]);
+
+        excelSpreadsheet.Save();
     }
 }

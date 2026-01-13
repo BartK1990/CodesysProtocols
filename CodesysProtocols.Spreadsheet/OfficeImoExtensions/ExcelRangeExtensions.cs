@@ -1,10 +1,10 @@
-﻿namespace CodesysProtocols.Spreadsheet;
+﻿namespace CodesysProtocols.Spreadsheet.OfficeImoExtensions;
 
-public static class RangeExtensions
+public static class ExcelRangeExtensions
 {
-    public static void Apply(this Range range, Action<int, int> cellAction) => Apply(range, [cellAction]);
+    public static void Apply(this ExcelRange range, Action<int, int> cellAction) => Apply(range, [cellAction]);
 
-    public static void Apply(this Range range, Action<int, int>[] cellActions)
+    public static void Apply(this ExcelRange range, Action<int, int>[] cellActions)
     {
         for (int row = range.FirstRow; row <= range.LastRow; row++)
         {

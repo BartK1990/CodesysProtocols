@@ -1,4 +1,4 @@
-namespace CodesysProtocols.Spreadsheet;
+namespace CodesysProtocols.Spreadsheet.OfficeImoExtensions;
 
 /// <summary>
 /// Border style options for Excel cells
