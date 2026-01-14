@@ -95,16 +95,11 @@ public class ExcelIec608705Table
         sheet.AddAutoFilter($"A3:{A1.ColumnIndexToLetters(lastColumn)}3");
         sheet.Freeze(topRows: 3, leftCols: 4);
         
-        // Use custom AutoFitColumns that doesn't rely on font information
         var excelSpreadsheet = ExcelSheetExtensions.GetExcelSpreadsheet(sheet);
-        if (excelSpreadsheet != null)
-        {
-            excelSpreadsheet.AutoFitColumns();
-        }
+        if (excelSpreadsheet is null) return;
+        excelSpreadsheet.AutoFitColumns();
 
         var range = new ExcelRange(1, 1, 3, lastColumn);
-        if (excelSpreadsheet is null) return;
-
         range.Apply([
             (x, y) => sheet.CellBackground(x, y, HeadersHtmlColor),
             (x, y) => excelSpreadsheet.CellBorder(x, y,

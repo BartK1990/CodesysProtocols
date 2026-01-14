@@ -28,23 +28,26 @@ public static class ExcelSheetExtensions
     /// </summary>
     private static SpreadsheetDocument? GetSpreadsheetDocument(ExcelSheet sheet)
     {
+        const string SpreadSheetDocumentField = "_spreadSheetDocument";
+        const string ExcelDocumentField = "_excelDocument";
+
         try
         {
             // Try to get the SpreadsheetDocument directly from ExcelSheet
-            var spreadsheetDocField = sheet.GetType().GetField("_spreadSheetDocument", BindingFlags.NonPublic | BindingFlags.Instance);
+            var spreadsheetDocField = sheet.GetType().GetField(SpreadSheetDocumentField, BindingFlags.NonPublic | BindingFlags.Instance);
             if (spreadsheetDocField != null)
             {
                 return spreadsheetDocField.GetValue(sheet) as SpreadsheetDocument;
             }
             
             // Fallback: Try to get via ExcelDocument
-            var excelDocField = sheet.GetType().GetField("_excelDocument", BindingFlags.NonPublic | BindingFlags.Instance);
+            var excelDocField = sheet.GetType().GetField(ExcelDocumentField, BindingFlags.NonPublic | BindingFlags.Instance);
             if (excelDocField != null)
             {
                 var excelDoc = excelDocField.GetValue(sheet);
                 if (excelDoc != null)
                 {
-                    var spreadsheetDocFromExcelDoc = excelDoc.GetType().GetField("_spreadSheetDocument", BindingFlags.NonPublic | BindingFlags.Instance);
+                    var spreadsheetDocFromExcelDoc = excelDoc.GetType().GetField(SpreadSheetDocumentField, BindingFlags.NonPublic | BindingFlags.Instance);
                     if (spreadsheetDocFromExcelDoc != null)
                     {
                         return spreadsheetDocFromExcelDoc.GetValue(excelDoc) as SpreadsheetDocument;
@@ -70,7 +73,7 @@ public static class ExcelSheetExtensions
             if (workbookPart == null) return null;
 
             // Find the worksheet part by sheet name
-            var sheets = workbookPart.Workbook.Sheets;
+            var sheets = workbookPart.Workbook?.Sheets;
             var sheetElement = sheets?.Elements<Sheet>().FirstOrDefault(s => s.Name == sheet.Name);
             
             if (sheetElement?.Id?.Value != null)
