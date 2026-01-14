@@ -47,6 +47,121 @@ public record ExcelSpreadsheet(SpreadsheetDocument SpreadsheetDocument, Workshee
         SpreadsheetDocument.WorkbookPart?.WorkbookStylesPart?.Stylesheet?.Save();
     }
 
+    /// <summary>
+    /// Auto-fits columns based on content length without relying on font information.
+    /// This implementation works in containerized environments where font information may not be available.
+    /// </summary>
+    /// <param name="minWidth">Minimum column width (default: 8)</param>
+    /// <param name="maxWidth">Maximum column width (default: 50)</param>
+    /// <param name="paddingChars">Extra characters to add for padding (default: 2)</param>
+    public void AutoFitColumns(double minWidth = 8, double maxWidth = 50, int paddingChars = 2)
+    {
+        if (WorksheetPart.Worksheet is null) return;
+        
+        var worksheet = WorksheetPart.Worksheet;
+        var sheetData = worksheet.GetFirstChild<SheetData>();
+        if (sheetData == null) return;
+
+        // Cache shared strings for efficient lookup
+        var sharedStrings = SpreadsheetDocument.WorkbookPart?.SharedStringTablePart?.SharedStringTable?
+            .Elements<SharedStringItem>().ToArray();
+
+        // Get or create Columns element
+        var columns = worksheet.GetFirstChild<Columns>();
+        if (columns == null)
+        {
+            columns = new Columns();
+            worksheet.InsertBefore(columns, sheetData);
+        }
+
+        // Calculate max content length for each column
+        var columnWidths = new Dictionary<int, double>();
+        
+        foreach (var row in sheetData.Elements<Row>())
+        {
+            foreach (var cell in row.Elements<Cell>())
+            {
+                if (cell.CellReference?.Value == null) continue;
+                
+                var columnIndex = GetColumnIndex(cell.CellReference.Value);
+                var cellText = GetCellText(cell, sharedStrings);
+                var contentLength = cellText?.Length ?? 0;
+                
+                if (!columnWidths.ContainsKey(columnIndex) || columnWidths[columnIndex] < contentLength)
+                {
+                    columnWidths[columnIndex] = contentLength;
+                }
+            }
+        }
+
+        // Apply calculated widths to columns
+        foreach (var kvp in columnWidths)
+        {
+            var columnIndex = kvp.Key;
+            var contentLength = kvp.Value;
+            
+            // Calculate width: content length + padding, clamped to min/max
+            // Excel width units are roughly character widths, with some adjustments
+            var width = Math.Max(minWidth, Math.Min(maxWidth, contentLength + paddingChars));
+            
+            // Check if column already exists
+            var existingColumn = columns.Elements<Column>()
+                .FirstOrDefault(c => c.Min?.Value == (uint)columnIndex && c.Max?.Value == (uint)columnIndex);
+            
+            if (existingColumn != null)
+            {
+                existingColumn.Width = width;
+                existingColumn.CustomWidth = true;
+            }
+            else
+            {
+                var column = new Column
+                {
+                    Min = (uint)columnIndex,
+                    Max = (uint)columnIndex,
+                    Width = width,
+                    CustomWidth = true
+                };
+                columns.Append(column);
+            }
+        }
+
+        Save();
+    }
+
+    private static int GetColumnIndex(string cellReference)
+    {
+        // Extract column letters from cell reference (e.g., "A1" -> "A", "AB10" -> "AB")
+        var columnLetters = new string(cellReference.TakeWhile(char.IsLetter).ToArray());
+        
+        // Convert column letters to index (A=1, B=2, ..., Z=26, AA=27, etc.)
+        int columnIndex = 0;
+        for (int i = 0; i < columnLetters.Length; i++)
+        {
+            columnIndex = columnIndex * 26 + (columnLetters[i] - 'A' + 1);
+        }
+        
+        return columnIndex;
+    }
+
+    private static string? GetCellText(Cell cell, SharedStringItem[]? sharedStrings)
+    {
+        if (cell.CellValue == null) return null;
+        
+        var value = cell.CellValue.Text;
+        
+        // If it's a shared string, look it up in the shared string table
+        if (cell.DataType?.Value == CellValues.SharedString && sharedStrings != null)
+        {
+            if (int.TryParse(value, out int index) && index >= 0 && index < sharedStrings.Length)
+            {
+                return sharedStrings[index]?.InnerText;
+            }
+        }
+        
+        return value;
+    }
+
     private static Cell GetOrCreateCell(Worksheet worksheet, SheetData sheetData, int rowIndex, int columnIndex)
     {
         var cellReference = $"{A1.ColumnIndexToLetters(columnIndex)}{rowIndex}";
